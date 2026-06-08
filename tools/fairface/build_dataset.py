@@ -7,6 +7,7 @@ import mediapipe as mp
 from mediapipe.tasks import python as mp_python
 from mediapipe.tasks.python import vision as mp_vision
 from datasets import load_dataset
+from PIL import ImageOps, ImageStat
 
 # Caminhos do projeto (resolvidos a partir da localização deste arquivo,
 # então funciona não importa de qual pasta você rode o script).
@@ -46,6 +47,10 @@ landmarker = mp_vision.FaceLandmarker.create_from_options(_opcoes)
 FLIP_RX = 1   # pitch (cima/baixo)
 FLIP_RY = 1   # yaw (esquerda/direita)
 FLIP_RZ = 1   # roll (inclinação)
+
+# Brilho mínimo (0-255) da imagem após auto-contraste; abaixo disso a foto
+# é escura demais para servir de referência e é descartada.
+LIMIAR_BRILHO = 50
 
 # Recorte: margem ao redor do rosto (1.0 = rosto justo; maior = mais cabeça).
 PADDING_RECORTE = 1.7
@@ -224,8 +229,16 @@ def processar_dataset(limite=5):
             sexo = MAPA_SEXO.get(sexo_raw, str(sexo_raw).lower())
             idade = MAPA_IDADE.get(idade_raw, idade_raw)
 
+            # Auto-contraste: clareia/normaliza a foto (ajuda detecção e
+            # exibição), depois descarta as que ainda ficam escuras demais.
+            img_rgb = ImageOps.autocontrast(pil_image.convert("RGB"), cutoff=1)
+            brilho = ImageStat.Stat(img_rgb.convert("L")).mean[0]
+            if brilho < LIMIAR_BRILHO:
+                print(f"Imagem {i}: escura demais (brilho {brilho:.0f}), pulando")
+                continue
+
             # Imagem RGB uint8 (H, W, 3) para o MediaPipe
-            rgb = np.array(pil_image.convert("RGB"), dtype=np.uint8)
+            rgb = np.array(img_rgb, dtype=np.uint8)
             h_img, w_img = rgb.shape[:2]
 
             mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb)
@@ -243,7 +256,7 @@ def processar_dataset(limite=5):
             indice = len(resultados_json)
             caminho_fisico = os.path.join(PASTA_STATIC, f"foto_{indice}.jpg")
             url_imagem = f"{URL_PREFIX}/foto_{indice}.jpg"
-            pil_image.convert("RGB").save(caminho_fisico)
+            img_rgb.save(caminho_fisico)
 
             rx, ry, rz = calcular_angulos_headpose(matriz)
             cx, cy, cs = calcular_bounding_box(landmarks, h_img, w_img)
@@ -282,4 +295,4 @@ def processar_dataset(limite=5):
 
 
 if __name__ == "__main__":
-    processar_dataset(limite=1000)
+    processar_dataset(limite=10000)

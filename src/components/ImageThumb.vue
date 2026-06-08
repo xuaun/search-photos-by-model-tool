@@ -1,24 +1,23 @@
 <template>
-    <a-spin class="thumb" :spinning="loading">
-        <div class="thumb-inner-wrapper"
-             :style="{width: size + 'px', height: size + 'px'}"
-             :class="{flip: image && image.flip}">
+    <div class="thumb" :style="{width: size + 'px', height: size + 'px'}">
+        <div class="img-layer" :class="{flip: image && image.flip}">
             <img v-if="image && image.url" :style="imgStyle" :src="image.url" alt="">
-            <slot/>
         </div>
-    </a-spin>
+        <slot/>
+    </div>
 </template>
 
 <script lang="ts" src="./ImageThumb.ts"></script>
 
 <style lang="scss" scoped>
 .thumb {
-    display: inline-block;
+    position: relative;
+    background-color: #f2f2f2;
+    overflow: hidden;
 
-    .thumb-inner-wrapper {
-        position: relative;
-        background-color: #f2f2f2;
-        overflow: hidden;
+    .img-layer {
+        position: absolute;
+        inset: 0;
 
         &.flip {
             transform: scale(-1, 1);

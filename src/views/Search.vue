@@ -101,8 +101,13 @@
                              :image="item"
                              :key="item.url"
                              :size="200"
-                             @click.native="show(item)"
-                />
+                             @click="show(item)"
+                >
+                    <div class="badge">{{ Math.round((1 - item.match) * 100) }}%</div>
+                    <div class="caption">
+                        {{ item.ethnicity }} · X {{ item.rx }} Y {{ item.ry }} Z {{ item.rz }}
+                    </div>
+                </image-thumb>
             </div>
         </div>
 
@@ -176,17 +181,63 @@
         height: 100%;
 
         .list {
+            display: flex;
+            flex-wrap: wrap;
+            align-content: flex-start;
+            gap: 10px;
             width: 100%;
             height: 100%;
-            overflow-y: scroll;
+            overflow-y: auto;
             box-sizing: border-box;
             border: 1px solid #d9d9d9;
             border-radius: 4px;
             padding: 10px;
 
             .item {
-                margin: 5px;
                 cursor: zoom-in;
+                border-radius: 4px;
+                transition: box-shadow .15s;
+
+                &:hover {
+                    box-shadow: 0 0 0 2px #1890ff;
+                }
+
+                .badge {
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    z-index: 2;
+                    padding: 2px 5px;
+                    font-size: 11px;
+                    line-height: 1.4;
+                    color: #fff;
+                    background-color: rgba(0, 0, 0, .55);
+                    border-bottom-right-radius: 4px;
+                    pointer-events: none;
+                }
+
+                .caption {
+                    position: absolute;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    z-index: 2;
+                    padding: 3px 6px;
+                    font-size: 11px;
+                    line-height: 1.4;
+                    color: #fff;
+                    background-color: rgba(0, 0, 0, .6);
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    transform: translateY(100%);
+                    transition: transform .15s;
+                    pointer-events: none;
+                }
+
+                &:hover .caption {
+                    transform: translateY(0);
+                }
             }
         }
     }
