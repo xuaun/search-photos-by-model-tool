@@ -27,10 +27,10 @@ export default defineComponent({
             data: [] as DataRecord[],
             facets: FACETS,
             filters: {
-                ethnicity: '',
-                sex: '',
-                age: '',
-            } as { [key: string]: string },
+                ethnicity: undefined,
+                sex: undefined,
+                age: undefined,
+            } as { [key: string]: string | undefined },
             model: {
                 url: (humanSkull || models[0]).path,
                 rotateX: 0,

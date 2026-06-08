@@ -162,6 +162,11 @@
         flex: 0 0 360px;
         width: 360px;
 
+        // Placeholder dos filtros mais escuro (o padrão do ant fica fraco no branco)
+        :deep(.ant-select-selection-placeholder) {
+            color: #595959;
+        }
+
         .inner-wrapper {
             display: flex;
             flex-direction: column;
