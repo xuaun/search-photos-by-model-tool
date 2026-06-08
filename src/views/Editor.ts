@@ -1,6 +1,6 @@
 import {message, Modal} from 'ant-design-vue';
 import Axios from 'axios';
-import Vue from 'vue';
+import {defineComponent} from 'vue';
 import DataDistribution from '../components/DataDistribution.vue';
 import ImageClip from '../components/ImageClip.vue';
 import ModelViewer from '../components/ModelViewer.vue';
@@ -42,7 +42,7 @@ async function saveJsonFile(filename: string, data: any) {
     );
 }
 
-export default class Editor extends Vue.extend({
+export default defineComponent({
     components: {ModelViewer, DataDistribution, ImageClip, ThumbList},
     data() {
         return {
@@ -134,6 +134,9 @@ export default class Editor extends Vue.extend({
         },
         dataWithTag(): DataRecord[] {
             return data.filter(photo => photo.tags.includes(this.dataDistributionFilterTag));
+        },
+        fileOptions(): { value: string }[] {
+            return this.files.map(filename => ({value: filename}));
         },
     },
     async mounted() {
@@ -303,5 +306,4 @@ export default class Editor extends Vue.extend({
             return content.filter(item => !invalid.includes(item));
         },
     }
-}) {
-}
+});

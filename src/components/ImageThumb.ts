@@ -1,4 +1,4 @@
-import Vue, {PropType} from 'vue';
+import {defineComponent, markRaw, PropType} from 'vue';
 
 function isElementInViewport(el: Element) {
     const rect = el.getBoundingClientRect(),
@@ -33,19 +33,20 @@ type ImageClip = {
     cs: number;
 };
 
-export default class ImageThumb extends Vue.extend({
-    data() {
-        return {
-            loading: false,
-            handlerRemoved: false
-        };
-    },
+export default defineComponent({
     props: {
         image: Object as PropType<ImageClip>,
         size: {
             type: Number,
             default: 160
         }
+    },
+    data() {
+        return {
+            loading: false,
+            handlerRemoved: false,
+            parent: null as Element | null,
+        };
     },
     computed: {
         imgStyle(): { [name: string]: string } {
@@ -63,12 +64,11 @@ export default class ImageThumb extends Vue.extend({
         }
     },
     mounted() {
-        const imageThumb = this as ImageThumb;
-        const parent = imageThumb.parent = getScrollableParent(this.$el);
+        this.parent = markRaw(getScrollableParent(this.$el) as Element);
 
         document.addEventListener('scroll', this.checkVisibilityChange, false);
         document.addEventListener('resize', this.checkVisibilityChange, false);
-        parent?.addEventListener('scroll', this.checkVisibilityChange, false);
+        this.parent?.addEventListener('scroll', this.checkVisibilityChange, false);
 
         this.checkVisibilityChange();
     },
@@ -83,7 +83,7 @@ export default class ImageThumb extends Vue.extend({
                 image.onerror = () => {
                     this.loading = false;
                 };
-                image.src = this.image?.url;
+                image.src = this.image?.url ?? '';
                 this.removeHandlers();
             }
         },
@@ -93,11 +93,8 @@ export default class ImageThumb extends Vue.extend({
             }
             document.removeEventListener('scroll', this.checkVisibilityChange);
             document.removeEventListener('resize', this.checkVisibilityChange);
-            const imageThumb = this as ImageThumb;
-            imageThumb.parent?.removeEventListener('scroll', this.checkVisibilityChange);
+            this.parent?.removeEventListener('scroll', this.checkVisibilityChange);
             this.handlerRemoved = true;
         }
     }
-}) {
-    parent?: Element;
-}
+});

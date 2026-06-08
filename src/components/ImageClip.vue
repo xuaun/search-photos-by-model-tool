@@ -8,7 +8,7 @@
                 <span class="prefix">Size</span>
                 <a-slider class="slider"
                           :included="false"
-                          v-model="clipSizeValue"
+                          v-model:value="clipSizeValue"
                           :min="0"
                           :max="imageClipMaxSize"/>
             </div>
@@ -29,7 +29,7 @@
             </div>
             <div class="slider-wrapper" style="width: 100%;">
                 <span class="prefix">Zoom</span>
-                <a-slider class="slider" :included="false" v-model="zoom" :min="10" :max="100"/>
+                <a-slider class="slider" :included="false" v-model:value="zoom" :min="10" :max="100"/>
             </div>
         </div>
     </div>
@@ -104,11 +104,9 @@
             }
         }
 
-        & ::v-deep {
-            .ant-spin-nested-loading {
-                width: 100%;
-                height: 100%;
-            }
+        :deep(.ant-spin-nested-loading) {
+            width: 100%;
+            height: 100%;
         }
     }
 }

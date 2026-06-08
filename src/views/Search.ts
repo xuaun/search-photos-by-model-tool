@@ -1,4 +1,4 @@
-import Vue from 'vue';
+import {defineComponent} from 'vue';
 import ImageThumb from '../components/ImageThumb.vue';
 import ImageViewer from '../components/ImageViewer.vue';
 
@@ -6,15 +6,18 @@ import ModelViewer from '../components/ModelViewer.vue';
 
 import models from '../models';
 import {DataRecord, getPhotoId} from '../utils/photo';
+import {FACETS} from '../facets';
 
 import {degEulerToQuaternion, distance} from '../utils/quaternion';
+
+const humanSkull = models.find(model => /human/i.test(model.name));
 
 type SearchResult = {
     flip: boolean;
     match: number;
 } & DataRecord;
 
-export default class Search extends Vue.extend({
+export default defineComponent({
     components: {ModelViewer, ImageThumb, ImageViewer},
     data() {
         return {
@@ -22,15 +25,21 @@ export default class Search extends Vue.extend({
             modelViewerSize: 360,
             models: models,
             data: [] as DataRecord[],
+            facets: FACETS,
+            filters: {
+                ethnicity: '',
+                sex: '',
+                age: '',
+            } as { [key: string]: string },
             model: {
-                url: models[0].path,
+                url: (humanSkull || models[0]).path,
                 rotateX: 0,
                 rotateY: 0,
                 rotateZ: 0,
                 zoom: 10,
                 gizmo: true,
             },
-            keyword: '',
+            keyword: 'human',
             result: [] as SearchResult[],
             collapseSearchConditions: false,
             large: {
@@ -66,6 +75,11 @@ export default class Search extends Vue.extend({
     methods: {
         search() {
             let data = this.keyword ? this.data.filter(item => item.tags?.includes(this.keyword)) : this.data;
+            // Apply human facet filters (only those the user actually set).
+            data = data.filter(item => this.facets.every(facet => {
+                const selected = this.filters[facet.key];
+                return !selected || (item as any)[facet.key] === selected;
+            }));
             const direction = degEulerToQuaternion(this.model.rotateX + 180, this.model.rotateY + 180, this.model.rotateZ + 180);
             const result: SearchResult[] = data.map(item => {
                 const flip = item.ry * this.model.rotateY < 0; // flip the image horizontally if it can match better
@@ -89,5 +103,4 @@ export default class Search extends Vue.extend({
             this.large.source = img.src || '';
         }
     }
-}) {
-}
+});

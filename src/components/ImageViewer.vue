@@ -7,7 +7,7 @@
             <img :src="imageUrl" alt="" :style="imgStyle">
 
             <div class="btn-close" @click="close">
-                <a-icon type="close"/>
+                <close-outlined/>
             </div>
 
             <div class="author-info">

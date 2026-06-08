@@ -6,18 +6,18 @@
 
 <script lang="ts">
 import {message} from 'ant-design-vue';
-import Vue from 'vue';
+import {defineComponent} from 'vue';
 
-export default Vue.extend({
+export default defineComponent({
     mounted(): void {
         window.addEventListener('error', this.onError);
         window.addEventListener('unhandledrejection', this.onUnhandledRejection);
-        Vue.config.errorHandler = this.vueErrorHandler;
-        this.$once('hook:beforeDestroy', () => {
-            window.removeEventListener('error', this.onError);
-            window.removeEventListener('unhandledrejection', this.onUnhandledRejection);
-            delete Vue.config.errorHandler;
-        });
+        this.$.appContext.config.errorHandler = this.vueErrorHandler;
+    },
+    beforeUnmount(): void {
+        window.removeEventListener('error', this.onError);
+        window.removeEventListener('unhandledrejection', this.onUnhandledRejection);
+        this.$.appContext.config.errorHandler = undefined;
     },
     methods: {
         onError(e: ErrorEvent) {
@@ -26,7 +26,7 @@ export default Vue.extend({
         onUnhandledRejection(e: PromiseRejectionEvent) {
             this.showErrorMessage(e.reason);
         },
-        vueErrorHandler(err: Error, vm: Vue, info: string) {
+        vueErrorHandler(err: unknown) {
             this.showErrorMessage(err);
         },
         showErrorMessage(error: any) {

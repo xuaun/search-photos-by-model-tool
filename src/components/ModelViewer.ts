@@ -1,14 +1,14 @@
 import * as THREE from 'three';
-import {TransformControls} from 'three/examples/jsm/controls/TransformControls';
-import {OBJLoader} from 'three/examples/jsm/loaders/OBJLoader';
-import Vue from 'vue';
+import {TransformControls} from 'three/examples/jsm/controls/TransformControls.js';
+import {OBJLoader} from 'three/examples/jsm/loaders/OBJLoader.js';
+import {defineComponent, markRaw} from 'vue';
 
 const DEG_2_RAD = 1 / 180 * Math.PI;
 const RAD_2_DEG = 1 / Math.PI * 180;
 const ZOOM_MAX = 20;
 const FPS = 30;
 
-export default class ModelViewer extends Vue.extend({
+export default defineComponent({
     props: {
         width: {
             type: Number,
@@ -23,16 +23,20 @@ export default class ModelViewer extends Vue.extend({
             default: 6.5
         },
         zoom: {
-            type: Number
+            type: Number,
+            default: 0
         },
         rotateX: {
-            type: Number
+            type: Number,
+            default: 0
         },
         rotateY: {
-            type: Number
+            type: Number,
+            default: 0
         },
         rotateZ: {
-            type: Number
+            type: Number,
+            default: 0
         },
         clearColor: {
             type: Number,
@@ -44,86 +48,60 @@ export default class ModelViewer extends Vue.extend({
             default: true,
         },
     },
-    watch: {
-        modelUrl() {
-            this.loadModel();
-        },
-        rotateX(val) {
-            const modelViewer = this as ModelViewer;
-            if (modelViewer.control?.dragging) {
-                return;
-            }
-            const model = modelViewer.model;
-            if (model) {
-                model.rotation.setFromVector3(
-                    new THREE.Vector3(
-                        this.rotateX * DEG_2_RAD,
-                        this.rotateY * DEG_2_RAD,
-                        this.rotateZ * DEG_2_RAD
-                    ));
-            }
-        },
-        rotateY(val) {
-            const modelViewer = this as ModelViewer;
-            if (modelViewer.control?.dragging) {
-                return;
-            }
-            const model = modelViewer.model;
-            if (model) {
-                model.rotation.setFromVector3(
-                    new THREE.Vector3(
-                        this.rotateX * DEG_2_RAD,
-                        this.rotateY * DEG_2_RAD,
-                        this.rotateZ * DEG_2_RAD
-                    ));
-            }
-        },
-        rotateZ(val) {
-            const modelViewer = this as ModelViewer;
-            if (modelViewer.control?.dragging) {
-                return;
-            }
-            const model = modelViewer.model;
-            if (model) {
-                model.rotation.setFromVector3(
-                    new THREE.Vector3(
-                        this.rotateX * DEG_2_RAD,
-                        this.rotateY * DEG_2_RAD,
-                        this.rotateZ * DEG_2_RAD
-                    ));
-            }
-        },
-        zoom(val) {
-            const modelViewer = this as ModelViewer;
-            const camera = modelViewer.camera;
-            if (camera) {
-                camera.position.z = ZOOM_MAX - val;
-            }
-        },
-        gizmo(val) {
-            const modelViewer = this as ModelViewer;
-            modelViewer.control!.visible = modelViewer.control!.enabled = val;
-        }
-    },
+    emits: ['update:rotateX', 'update:rotateY', 'update:rotateZ', 'update:zoom'],
     data() {
         return {
             loading: false,
             dragging: false,
             dragStartX: 0,
-            dragStartY: 0
+            dragStartY: 0,
+            renderer: null as THREE.WebGLRenderer | null,
+            scene: null as THREE.Scene | null,
+            camera: null as THREE.Camera | null,
+            loader: null as OBJLoader | null,
+            model: null as THREE.Group | null,
+            control: null as TransformControls | null,
+            helper: null as THREE.Object3D | null,
+            intervalId: 0,
         };
     },
+    watch: {
+        modelUrl() {
+            this.loadModel();
+        },
+        rotateX() {
+            this.applyRotation();
+        },
+        rotateY() {
+            this.applyRotation();
+        },
+        rotateZ() {
+            this.applyRotation();
+        },
+        zoom(val) {
+            if (this.camera) {
+                this.camera.position.z = ZOOM_MAX - val;
+            }
+        },
+        gizmo(val) {
+            if (this.control) {
+                this.control.enabled = val;
+            }
+            if (this.helper) {
+                this.helper.visible = val;
+            }
+        }
+    },
     mounted(): void {
-        const modelViewer = this as ModelViewer;
         (window as any).modelViewer = this;
-        const renderer = modelViewer.renderer = new THREE.WebGLRenderer({
+        const renderer = this.renderer = markRaw(new THREE.WebGLRenderer({
             canvas: this.$refs.canvas as HTMLCanvasElement
-        });
+        }));
         renderer.setClearColor(this.clearColor);
 
-        const scene = modelViewer.scene = new THREE.Scene();
+        const scene = this.scene = markRaw(new THREE.Scene());
 
-        const camera = modelViewer.camera = new THREE.PerspectiveCamera(45, this.width / this.height);
+        const camera = this.camera = markRaw(new THREE.PerspectiveCamera(45, this.width / this.height));
         camera.position.set(0, 0, ZOOM_MAX - this.zoom);
         camera.lookAt(new THREE.Vector3(0, 0, 0));
         scene.add(camera);
@@ -132,43 +110,58 @@ export default class ModelViewer extends Vue.extend({
         light.position.set(0, 5, 5);
         scene.add(light);
 
-        const control = modelViewer.control = new TransformControls(camera, this.$refs.canvas as HTMLElement);
+        const control = this.control = markRaw(new TransformControls(camera, this.$refs.canvas as HTMLElement));
         control.setSpace('local');
         control.setMode('rotate');
         control.setSize(2);
-        control.visible = control.enabled = this.gizmo;
+        control.enabled = this.gizmo;
         control.addEventListener('dragging-changed', () => {
-            const model = modelViewer.model;
+            const model = this.model;
             if (model) {
                 this.$emit('update:rotateX', Math.round(model.rotation.x * RAD_2_DEG));
                 this.$emit('update:rotateY', Math.round(model.rotation.y * RAD_2_DEG));
                 this.$emit('update:rotateZ', Math.round(model.rotation.z * RAD_2_DEG));
             }
         });
-        scene.add(control);
+        // three r160+: TransformControls is no longer an Object3D; add its helper.
+        const helper = this.helper = markRaw(control.getHelper());
+        helper.visible = this.gizmo;
+        scene.add(helper);
 
-        const iid = setInterval(this.render, 1000 / FPS);
+        this.intervalId = window.setInterval(this.render, 1000 / FPS);
         window.addEventListener('mouseup', this.dragStop);
         window.addEventListener('touchend', this.dragStop);
-        this.$on('hook:beforeDestroy', () => {
-            clearInterval(iid);
-            window.removeEventListener('mouseup', this.dragStop);
-            window.removeEventListener('touchend', this.dragStop);
-        });
 
-        modelViewer.loader = new OBJLoader();
+        this.loader = markRaw(new OBJLoader());
         if (this.modelUrl) {
             this.loadModel();
         }
     },
+    beforeUnmount(): void {
+        clearInterval(this.intervalId);
+        window.removeEventListener('mouseup', this.dragStop);
+        window.removeEventListener('touchend', this.dragStop);
+    },
     methods: {
+        applyRotation() {
+            if (this.control?.dragging) {
+                return;
+            }
+            if (this.model) {
+                this.model.rotation.setFromVector3(
+                    new THREE.Vector3(
+                        this.rotateX * DEG_2_RAD,
+                        this.rotateY * DEG_2_RAD,
+                        this.rotateZ * DEG_2_RAD
+                    ));
+            }
+        },
         loadOBJ(url: string): Promise<THREE.Group> {
-            const modelViewer = this as ModelViewer;
             return new Promise((resolve, reject) => {
-                if (!modelViewer.loader) {
+                if (!this.loader) {
                     throw new Error('Not initialized');
                 }
-                modelViewer.loader.load(
+                this.loader.load(
                     url,
                     resolve,
                     undefined,
@@ -177,17 +170,19 @@ export default class ModelViewer extends Vue.extend({
             });
         },
         async loadModel() {
+            const url = this.modelUrl;
+            if (!url) {
+                return;
+            }
             try {
                 this.loading = true;
-                const group = await this.loadOBJ(this.modelUrl);
-
-                const modelViewer = this as ModelViewer;
+                const group = markRaw(await this.loadOBJ(url));
 
                 // remove existed
-                if (modelViewer.model) {
-                    modelViewer.control!.detach();
-                    modelViewer.scene!.remove(modelViewer.model);
-                    modelViewer.model = undefined;
+                if (this.model) {
+                    this.control!.detach();
+                    this.scene!.remove(this.model);
+                    this.model = null;
                 }
 
                 // double side material
@@ -219,19 +214,18 @@ export default class ModelViewer extends Vue.extend({
 
                 group.rotation.set(this.rotateX * DEG_2_RAD, this.rotateY * DEG_2_RAD, this.rotateZ * DEG_2_RAD);
 
-                modelViewer.model = group;
-                modelViewer.scene!.add(group);
+                this.model = group;
+                this.scene!.add(group);
 
-                modelViewer.control!.attach(group);
+                this.control!.attach(group);
             } finally {
                 this.loading = false;
             }
         },
         render() {
-            const modelViewer = this as ModelViewer;
-            modelViewer.renderer!.render(modelViewer.scene!, modelViewer.camera!);
+            this.renderer!.render(this.scene!, this.camera!);
         },
-        dragStart(e: MouseEvent & TouchEvent) {
+        dragStart(e: any) {
             if (this.gizmo) {
                 return;
             }
@@ -242,7 +236,7 @@ export default class ModelViewer extends Vue.extend({
         dragStop() {
             this.dragging = false;
         },
-        dragMove(e: MouseEvent & TouchEvent) {
+        dragMove(e: any) {
             if (!this.dragging) {
                 return;
             }
@@ -276,11 +270,4 @@ export default class ModelViewer extends Vue.extend({
             this.$emit('update:zoom', Math.min(ZOOM_MAX, Math.max(0, this.zoom + delta)));
         }
     }
-}) {
-    renderer?: THREE.WebGLRenderer;
-    scene?: THREE.Scene;
-    camera?: THREE.Camera;
-    loader?: OBJLoader;
-    model?: THREE.Group;
-    control?: TransformControls;
-}
+});

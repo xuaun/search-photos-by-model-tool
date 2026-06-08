@@ -1,7 +1,7 @@
-import Vue from 'vue';
+import {defineComponent} from 'vue';
 import {getPhotoAuthorLink, getPhotoSourceType, getSourceLink, PhotoSourceType} from '../utils/photo';
 
-export default class ImageViewer extends Vue.extend({
+export default defineComponent({
     props: {
         show: Boolean,
         imageUrl: String,
@@ -13,6 +13,7 @@ export default class ImageViewer extends Vue.extend({
             default: false
         }
     },
+    emits: ['update:show'],
     data() {
         return {
             width: 0,
@@ -49,17 +50,17 @@ export default class ImageViewer extends Vue.extend({
             };
         },
         sourceType(): PhotoSourceType {
-            return getPhotoSourceType(this.imageUrl);
+            return getPhotoSourceType(this.imageUrl ?? '');
         },
         sourceLink(): string {
             return getSourceLink(this.sourceType) || '';
         },
-        authorLink(): string | null {
+        authorLink(): string {
             return getPhotoAuthorLink(
                 this.sourceType,
-                this.id,
-                this.source
-            );
+                this.id ?? '',
+                this.source ?? ''
+            ) ?? '';
         },
     },
     methods: {
@@ -67,5 +68,4 @@ export default class ImageViewer extends Vue.extend({
             this.$emit('update:show', false);
         },
     }
-}) {
-}
+});

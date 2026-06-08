@@ -1,28 +1,34 @@
-import {AutoComplete, Button, Checkbox, Icon, Input, Select, Slider, Spin} from 'ant-design-vue';
-import 'ant-design-vue/lib/auto-complete/style/css';
-import 'ant-design-vue/lib/button/style/css';
-import 'ant-design-vue/lib/checkbox/style/css';
-import 'ant-design-vue/lib/icon/style/css';
-import 'ant-design-vue/lib/input/style/css';
-import 'ant-design-vue/lib/message/style/css';
-import 'ant-design-vue/lib/modal/style/css';
-import 'ant-design-vue/lib/select/style/css';
-import 'ant-design-vue/lib/slider/style/css';
-import 'ant-design-vue/lib/spin/style/css';
-import Vue from 'vue';
+import Antd from 'ant-design-vue';
+import 'ant-design-vue/dist/reset.css';
+import {
+    CloseOutlined,
+    DeleteOutlined,
+    FileOutlined,
+    InfoCircleOutlined,
+    LeftOutlined,
+    LockOutlined,
+    RightOutlined,
+    SaveOutlined,
+    UpOutlined,
+} from '@ant-design/icons-vue';
+import {createApp} from 'vue';
 import App from './App.vue';
 import router from './router';
 
-Vue.use(AutoComplete);
-Vue.use(Button);
-Vue.use(Checkbox);
-Vue.use(Icon);
-Vue.use(Input);
-Vue.use(Select);
-Vue.use(Slider);
-Vue.use(Spin);
+const app = createApp(App);
 
-new Vue({
-    router,
-    render: h => h(App)
-}).$mount('#app');
+app.use(router);
+app.use(Antd);
+
+// Icons used across templates (registered globally with kebab-case names).
+app.component('CloseOutlined', CloseOutlined);
+app.component('DeleteOutlined', DeleteOutlined);
+app.component('FileOutlined', FileOutlined);
+app.component('InfoCircleOutlined', InfoCircleOutlined);
+app.component('LeftOutlined', LeftOutlined);
+app.component('LockOutlined', LockOutlined);
+app.component('RightOutlined', RightOutlined);
+app.component('SaveOutlined', SaveOutlined);
+app.component('UpOutlined', UpOutlined);
+
+app.mount('#app');

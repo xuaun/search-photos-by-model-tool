@@ -16,6 +16,12 @@ export type DataRecord = {
     id?: string,
     au?: string,
     src?: string,
+    // Human reference facets (optional; only populated for human photos).
+    // These are self-identified / source-declared labels used purely as
+    // catalog filters, never inferred algorithmically about a person.
+    ethnicity?: string,
+    sex?: string,
+    age?: string,
 };
 
 export type PhotoSourceType = 'Flickr' | 'Unsplash' | 'unknown';

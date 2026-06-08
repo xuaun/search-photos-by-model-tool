@@ -1,11 +1,7 @@
-import Vue from 'vue';
-import Router from 'vue-router';
+import {createRouter, createWebHashHistory} from 'vue-router';
 
-Vue.use(Router);
-
-const router = new Router({
-    mode: 'hash',
-    base: process.env.BASE_URL,
+const router = createRouter({
+    history: createWebHashHistory(),
     routes: [
         {
             path: '/',

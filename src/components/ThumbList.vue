@@ -14,11 +14,14 @@
                      v-if="index >= firstVisibleIndex && index <= lastVisibleIndex"
                 >
                 <a-button class="btn-remove"
-                          icon="delete"
                           shape="circle"
                           size="small"
                           @click.stop="remove(index)"
-                />
+                >
+                    <template #icon>
+                        <delete-outlined/>
+                    </template>
+                </a-button>
             </div>
         </div>
     </div>

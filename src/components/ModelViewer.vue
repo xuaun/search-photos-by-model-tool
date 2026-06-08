@@ -9,7 +9,7 @@
                 @contextmenu.prevent
                 @mousedown="dragStart"
                 @mousemove="dragMove"
-                @mousewheel="mouseWheel"
+                @wheel.prevent="mouseWheel"
                 @touchstart.passive="dragStart"
                 @touchmove.passive="dragMove"
         ></canvas>

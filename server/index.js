@@ -1,7 +1,7 @@
-const fs = require('fs').promises;
-const bodyParser = require('body-parser');
+import {promises as fs} from 'fs';
+import bodyParser from 'body-parser';
 
-module.exports = function (app) {
+export default function (app) {
     app.use(bodyParser.text());
 
     app.get('/server/dataList', async function (req, res) {

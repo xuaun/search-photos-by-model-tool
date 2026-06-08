@@ -1,15 +1,16 @@
-import Vue, {PropType} from 'vue';
+import {defineComponent, PropType} from 'vue';
 import {getFlickrThumb} from '../utils/flickr';
 import throttle from '../utils/throttle';
 
 const THUMB_SIZE = 116;
 const THUMB_MARGIN = 8;
 
-export default class ThumbList extends Vue.extend({
+export default defineComponent({
     props: {
         images: Array as PropType<{ url: string }[]>,
         active: Number
     },
+    emits: ['select', 'remove'],
     data() {
         return {
             firstVisibleIndex: -1,
@@ -38,7 +39,7 @@ export default class ThumbList extends Vue.extend({
     },
     methods: {
         updateVisibleIndex: throttle(
-            function (this: ThumbList) {
+            function (this: any) {
                 if (!this.$refs) {
                     return;
                 }
@@ -58,5 +59,4 @@ export default class ThumbList extends Vue.extend({
             this.$emit('remove', index);
         }
     }
-}) {
-}
+});

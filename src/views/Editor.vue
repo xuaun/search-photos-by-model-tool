@@ -1,7 +1,7 @@
 <template>
     <div class="container cols">
         <div class="rows" style="width: 300px;">
-            <a-select v-model="model.url"
+            <a-select v-model:value="model.url"
                       show-search
                       size="small"
             >
@@ -14,10 +14,10 @@
             </a-select>
 
             <model-viewer :model-url="model.url"
-                          :rotate-x.sync="model.rotateX"
-                          :rotate-y.sync="model.rotateY"
-                          :rotate-z.sync="model.rotateZ"
-                          :zoom.sync="model.zoom"
+                          v-model:rotateX="model.rotateX"
+                          v-model:rotateY="model.rotateY"
+                          v-model:rotateZ="model.rotateZ"
+                          v-model:zoom="model.zoom"
                           :width="300"
                           :height="300"
             />
@@ -25,7 +25,7 @@
             <div class="cols" style="align-items: center;">
                 <a-slider class="fill"
                           :included="false"
-                          v-model="model.rotateZ"
+                          v-model:value="model.rotateZ"
                           :min="-180"
                           :max="180"
                 />
@@ -37,11 +37,11 @@
             </div>
 
             <div>Direction Distribution</div>
-            <a-select v-model="dataDistributionFilterTag"
+            <a-select v-model:value="dataDistributionFilterTag"
                       show-search
                       size="small"
             >
-                <a-select-option v-for="(num, tag) in tags" :key="tag">{{ tag }} ({{ num }})</a-select-option>
+                <a-select-option v-for="(num, tag) in tags" :key="tag" :value="tag">{{ tag }} ({{ num }})</a-select-option>
             </a-select>
             <data-distribution :width="300"
                                :height="300"
@@ -51,7 +51,7 @@
 
         <div class="rows" style="width: 600px;">
             <div class="cols">
-                <a-select v-model="photoSource"
+                <a-select v-model:value="photoSource"
                           style="width: 100px;"
                           size="small"
                 >
@@ -63,15 +63,17 @@
                     </a-select-option>
                 </a-select>
 
-                <a-input v-model="apiKey"
+                <a-input v-model:value="apiKey"
                          placeholder="API Key"
                          style="width: 120px"
                          size="small"
                 >
-                    <a-icon slot="prefix" type="lock"/>
+                    <template #prefix>
+                        <lock-outlined/>
+                    </template>
                 </a-input>
 
-                <a-input-search v-model="keywords"
+                <a-input-search v-model:value="keywords"
                                 placeholder="Keywords"
                                 class="fill"
                                 size="small"
@@ -82,14 +84,19 @@
             </div>
 
             <div class="cols" style="height: 114px;">
-                <a-button icon="left" size="small" style="height: 100%;"
+                <a-button size="small" style="height: 100%;"
                           :disabled="page.page <= 1"
                           @click="prevPage"
-                />
+                >
+                    <template #icon>
+                        <left-outlined/>
+                    </template>
+                </a-button>
 
                 <div class="photos-list fill" style="height: 100%;">
                     <div class="photo"
                          v-for="photo in page.photos"
+                         :key="photo.id"
                          :class="{active: photo.id === clip.id}"
                          @click="selectPhoto(photo)"
                     >
@@ -97,18 +104,22 @@
                     </div>
                 </div>
 
-                <a-button icon="right" size="small" style="height: 100%;"
+                <a-button size="small" style="height: 100%;"
                           :disabled="page.page >= page.totalPages"
                           @click="nextPage"
-                />
+                >
+                    <template #icon>
+                        <right-outlined/>
+                    </template>
+                </a-button>
             </div>
 
             <image-clip :image-url="clip.imageUrl"
-                        :image-width.sync="clip.width"
-                        :image-height.sync="clip.height"
-                        :clip-left.sync="clip.clipLeft"
-                        :clip-top.sync="clip.clipTop"
-                        :clip-size.sync="clip.clipSize"
+                        v-model:imageWidth="clip.width"
+                        v-model:imageHeight="clip.height"
+                        v-model:clipLeft="clip.clipLeft"
+                        v-model:clipTop="clip.clipTop"
+                        v-model:clipSize="clip.clipSize"
                         style="width: 600px; height: 420px"
             />
 
@@ -117,7 +128,7 @@
                 <a-input size="small"
                          placeholder="ID"
                          class="fill"
-                         v-model="clip.id"
+                         v-model:value="clip.id"
                 />
             </div>
             <div class="form-item cols">
@@ -125,7 +136,7 @@
                 <a-input size="small"
                          placeholder="Image URL"
                          class="fill"
-                         v-model="clip.imageUrl"
+                         v-model:value="clip.imageUrl"
                 />
             </div>
             <div class="form-item cols">
@@ -133,7 +144,7 @@
                 <a-input size="small"
                          placeholder="Author"
                          class="fill"
-                         v-model="clip.author"
+                         v-model:value="clip.author"
                 />
             </div>
             <div class="form-item cols">
@@ -141,7 +152,7 @@
                 <a-input size="small"
                          placeholder="Author link"
                          class="fill"
-                         v-model="clip.source"
+                         v-model:value="clip.source"
                 />
             </div>
             <div class="form-item cols">
@@ -150,7 +161,7 @@
                           size="small"
                           placeholder="Tags"
                           class="fill"
-                          v-model="clip.tags"
+                          v-model:value="clip.tags"
                 />
             </div>
 
@@ -165,23 +176,29 @@
 
         <div class="rows" style="width: 240px">
             <div class="cols">
-                <a-auto-complete v-model="filename"
-                                 :data-source="files"
+                <a-auto-complete v-model:value="filename"
+                                 :options="fileOptions"
                                  placeholder="Filename"
                                  class="fill"
                                  size="small"
                 />
-                <a-button icon="file"
-                          title="New"
+                <a-button title="New"
                           @click="createNew"
                           size="small"
-                />
-                <a-button icon="save"
-                          title="Save .json File"
+                >
+                    <template #icon>
+                        <file-outlined/>
+                    </template>
+                </a-button>
+                <a-button title="Save .json File"
                           @click="saveJson"
                           :disabled="!filename"
                           size="small"
-                />
+                >
+                    <template #icon>
+                        <save-outlined/>
+                    </template>
+                </a-button>
             </div>
 
             <thumb-list class="fill"

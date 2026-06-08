@@ -1,16 +1,17 @@
-import Vue from 'vue';
+import {defineComponent} from 'vue';
 
 const THUMB_SIZE = 160;
 
-export default class ImageClip extends Vue.extend({
+export default defineComponent({
     props: {
         imageUrl: String,
-        imageWidth: Number,
-        imageHeight: Number,
-        clipLeft: Number,
-        clipTop: Number,
-        clipSize: Number
+        imageWidth: {type: Number, default: 0},
+        imageHeight: {type: Number, default: 0},
+        clipLeft: {type: Number, default: 0},
+        clipTop: {type: Number, default: 0},
+        clipSize: {type: Number, default: 0}
     },
+    emits: ['update:imageWidth', 'update:imageHeight', 'update:clipSize', 'update:clipLeft', 'update:clipTop'],
     data() {
         return {
             loading: false,
@@ -99,9 +100,9 @@ export default class ImageClip extends Vue.extend({
     },
     mounted() {
         window.addEventListener('mouseup', this.imageClipDragStop);
-        this.$once('hook:beforeDestroy', () => {
-            window.removeEventListener('mouseup', this.imageClipDragStop);
-        });
+    },
+    beforeUnmount() {
+        window.removeEventListener('mouseup', this.imageClipDragStop);
     },
     methods: {
         imageClipDragStart(e: MouseEvent) {
@@ -140,5 +141,4 @@ export default class ImageClip extends Vue.extend({
             this.$emit('update:clipTop', top);
         },
     }
-}) {
-}
+});

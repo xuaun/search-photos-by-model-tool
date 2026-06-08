@@ -2,38 +2,33 @@
     <div class="wrapper">
         <div class="column condition" :class="{collapsed: collapseSearchConditions}">
             <div class="inner-wrapper">
-                <h4>Species:</h4>
                 <div class="row" style="margin-bottom: 8px">
-                    <a-spin :spinning="loading"
-                            style="flex: 1 1; min-width: 0;">
-                        <a-select style="width: 100%;"
-                                  placeholder="any"
-                                  show-search
-                                  v-model="keyword">
-                            <a-select-option :key="''">any</a-select-option>
-                            <a-select-option v-for="tag in tags" :key="tag">{{ tag }}</a-select-option>
-                        </a-select>
+                    <a-spin :spinning="loading" style="flex: 1 1; min-width: 0;">
+                        <a-button type="primary" block @click="search">Search</a-button>
                     </a-spin>
-                    <a-button type="primary" @click="search">Search</a-button>
                 </div>
 
-                <h4>Direction: (skull type does not affect search results)</h4>
-                <div class="row">
-                    <a-select v-model="model.url"
-                              show-search
-                              style="width: 100%;">
-                        <a-select-option v-for="option in models"
-                                         :key="option.path"
-                                         :value="option.path">
-                            {{ option.name }}
-                        </a-select-option>
-                    </a-select>
+                <h4>Filters: (optional)</h4>
+                <div class="row" style="margin-bottom: 8px; flex-wrap: wrap;">
+                    <div v-for="facet in facets"
+                         :key="facet.key"
+                         style="flex: 1 1 30%; min-width: 90px; margin-bottom: 4px;">
+                        <a-select style="width: 100%;"
+                                  :placeholder="facet.label"
+                                  show-search
+                                  allow-clear
+                                  v-model:value="filters[facet.key]">
+                            <a-select-option v-for="option in facet.options" :key="option" :value="option">{{ option }}</a-select-option>
+                        </a-select>
+                    </div>
                 </div>
+
+                <h4>Direction:</h4>
                 <model-viewer :model-url="model.url"
-                              :rotate-x.sync="model.rotateX"
-                              :rotate-y.sync="model.rotateY"
-                              :rotate-z.sync="model.rotateZ"
-                              :zoom.sync="model.zoom"
+                              v-model:rotateX="model.rotateX"
+                              v-model:rotateY="model.rotateY"
+                              v-model:rotateZ="model.rotateZ"
+                              v-model:zoom="model.zoom"
                               :width="modelViewerSize"
                               :height="modelViewerSize"
                               :gizmo="model.gizmo"
@@ -42,15 +37,15 @@
                        target="_blank" title="Author of this model"
                        v-if="modelAuthorLink"
                        :href="modelAuthorLink">
-                        <a-icon type="info-circle"/>
+                        <info-circle-outlined/>
                     </a>
                 </model-viewer>
 
                 <div class="row">
-                    <a-checkbox v-model:check="model.gizmo">Gizmo</a-checkbox>
+                    <a-checkbox v-model:checked="model.gizmo">Gizmo</a-checkbox>
                     <span>X: {{ model.rotateX }}; Y: {{ model.rotateY }}; Z: </span>
                     <a-slider :included="false"
-                              v-model="model.rotateZ"
+                              v-model:value="model.rotateZ"
                               :min="-180"
                               :max="180"
                               style="flex: 1 1; min-width: 0;"
@@ -73,7 +68,12 @@
                         Special Thanks: <a href="https://github.com/xrabohrok" target="_blank">xrabohrok</a>
                         - Thank you for helping improve this tool!
                     </div>
-                    <div>Latest update: 2023-07-11</div>
+                    <div>Latest update: 2026-06-08 (human pose search version by Xuaun)</div>
+                    <div>
+                        Faces from the
+                        <a href="https://github.com/joojunfff/fairface" target="_blank">FairFace</a>
+                        dataset (CC BY 4.0).
+                    </div>
                     <div>
                         <a href="https://github.com/x6ud/x6ud.github.io/issues" target="_blank">Leave a message</a>
                     </div>
@@ -90,7 +90,7 @@
             </div>
 
             <div class="collapse-handler" @click="collapseSearchConditions = !collapseSearchConditions">
-                <a-icon class="icon" type="up"/>
+                <up-outlined class="icon"/>
             </div>
         </div>
 
@@ -106,7 +106,7 @@
             </div>
         </div>
 
-        <image-viewer :show.sync="large.show"
+        <image-viewer v-model:show="large.show"
                       :image-url="large.imageUrl"
                       :flip="large.flip"
                       :id="large.id"

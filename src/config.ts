@@ -1,1 +1,1 @@
-export const APP_NAME = 'animal-art-references-search';
+export const APP_NAME = 'human-art-references-search';

@@ -2,7 +2,7 @@
     <a-spin class="thumb" :spinning="loading">
         <div class="thumb-inner-wrapper"
              :style="{width: size + 'px', height: size + 'px'}"
-             :class="{flip: this.image && image.flip}">
+             :class="{flip: image && image.flip}">
             <img v-if="image && image.url" :style="imgStyle" :src="image.url" alt="">
             <slot/>
         </div>

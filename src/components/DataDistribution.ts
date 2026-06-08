@@ -1,15 +1,20 @@
-import Vue, {PropType} from 'vue';
+import {defineComponent, markRaw, PropType} from 'vue';
 import {degEulerToQuaternion} from '../utils/quaternion';
 
-export default class DataDistribution extends Vue.extend({
+export default defineComponent({
     props: {
         width: Number,
         height: Number,
         data: Array as PropType<{ rx: number, ry: number, rz: number }[]>
     },
+    data() {
+        return {
+            ctx: null as CanvasRenderingContext2D | null,
+        };
+    },
     mounted() {
         const canvas = this.$refs.canvas as HTMLCanvasElement;
-        (this as DataDistribution).ctx = canvas.getContext('2d')!;
+        this.ctx = markRaw(canvas.getContext('2d')!);
         this.render();
     },
     watch: {
@@ -19,27 +24,29 @@ export default class DataDistribution extends Vue.extend({
     },
     methods: {
         render() {
-            const ctx = (this as DataDistribution).ctx;
+            const ctx = this.ctx;
             if (!ctx) {
                 return;
             }
+            const width = this.width!;
+            const height = this.height!;
             ctx.fillStyle = '#f2f2f2';
-            ctx.fillRect(0, 0, this.width, this.height);
-            const cx = this.width / 2;
-            const cy = this.height / 2;
+            ctx.fillRect(0, 0, width, height);
+            const cx = width / 2;
+            const cy = height / 2;
             ctx.beginPath();
             ctx.moveTo(0, cy);
-            ctx.lineTo(this.width, cy);
+            ctx.lineTo(width, cy);
             ctx.moveTo(cx, 0);
-            ctx.lineTo(cx, this.height);
+            ctx.lineTo(cx, height);
             ctx.strokeStyle = '#999';
             ctx.stroke();
             ctx.fillStyle = '#000';
-            ctx.fillText('front', this.width - 28, cy + 3);
+            ctx.fillText('front', width - 28, cy + 3);
             ctx.fillText('back', 6, cy + 3);
             ctx.fillText('up', cx - 6, 12);
-            ctx.fillText('down', cx - 12, this.height - 6);
-            const size = this.width / 2 * .75;
+            ctx.fillText('down', cx - 12, height - 6);
+            const size = width / 2 * .75;
             this.data?.forEach(item => {
                 const quaternion = degEulerToQuaternion(item.rx + 180, item.ry + 180, item.rz + 180);
                 ctx.beginPath();
@@ -55,6 +62,4 @@ export default class DataDistribution extends Vue.extend({
             });
         }
     }
-}) {
-    ctx?: CanvasRenderingContext2D;
-}
+});
